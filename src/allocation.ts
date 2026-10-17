@@ -17,6 +17,12 @@ interface ShiftResult {
   balance: number;
 }
 
+interface BarRenderInfo {
+  label: string;
+  value: number;
+  color: string;
+}
+
 function calculateShift(producersCount: number): ShiftResult {
   const production = producersCount * productionPerProducer;
   const consumption = crew;
@@ -39,16 +45,24 @@ function updateVisuals() {
   ctx.fillStyle = "#233e43";
   ctx.font = "14px system-ui";
   ctx.fillText(`Producers: ${result.producers} / ${result.crew}`, 18, 76);
-  ctx.fillText(`Production: ${result.production}`, 18, 102);
 
-  ctx.fillStyle = "#27766b";
-  ctx.fillRect(18, 110, result.production * 14, 20);
+  const barRenderInfos: BarRenderInfo[] = [
+    { label: "Production", value: result.production, color: "#27766b" },
+    { label: "Consumption", value: result.consumption, color: "#a44d23" },
+  ];
 
-  ctx.fillStyle = "#233e43";
-  ctx.fillText(`Consumption: ${result.consumption}`, 18, 154);
+  barRenderInfos.forEach((barInfo, i) => {
+    const labelY = 102 + i * 52;
+    const barY = 110 + i * 52;
 
-  ctx.fillStyle = "#a44d23";
-  ctx.fillRect(18, 162, result.consumption * 14, 20);
+    // label
+    ctx.fillStyle = "#233e43";
+    ctx.fillText(`${barInfo.label}: ${barInfo.value}`, 18, labelY);
+
+    // bar
+    ctx.fillStyle = barInfo.color;
+    ctx.fillRect(18, barY, barInfo.value * 14, 20);
+  });
 
   readout.textContent =
     `Assigned: ${result.producers}/${result.crew} · Production: ${result.production} · Consumption: ${result.consumption} · Balance: ${
