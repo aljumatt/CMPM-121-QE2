@@ -14,6 +14,8 @@ let panel: HTMLParagraphElement | null = null;
 let panelUpdates = 0;
 const shieldCapacity = 10;
 
+let inspectorListener: ((e: Event) => void) | null = null;
+
 interface ShieldSnapshot {
   charge: number;
   capacity: number;
@@ -85,11 +87,25 @@ document.querySelector<HTMLButtonElement>("#counter-open")!.onclick = () => {
   panel = document.createElement("p");
   host.append(panel);
   renderStats(getShieldSnapshot());
+
+  inspectorListener = (e: Event) => {
+    const snapshot = (e as CustomEvent<ShieldSnapshot>).detail;
+    panelUpdates++;
+    diagnostic.textContent = "Inspector deliveries: ${panelUpdates}";
+    renderStats(snapshot);
+  };
+  shieldNotifier.addEventListener("change", inspectorListener);
 };
+
 document.querySelector<HTMLButtonElement>("#counter-close")!.onclick = () => {
   if (!panel) return;
   panel.remove();
   panel = null;
+
+  if (inspectorListener) {
+    shieldNotifier.removeEventListener("change", inspectorListener);
+    inspectorListener = null;
+  }
 };
 
 drawMeter(getShieldSnapshot());
