@@ -3,9 +3,14 @@ export {};
 const canvas = document.querySelector<HTMLCanvasElement>("#rover-canvas")!;
 const ctx = canvas.getContext("2d")!;
 const readout = document.querySelector<HTMLParagraphElement>("#rover-readout")!;
+const pendingList = document.querySelector<HTMLOListElement>("#rover-pending")!;
+const queueStatus = document.querySelector<HTMLParagraphElement>(
+  "#rover-queue-status",
+)!;
 let x = 2;
 let y = 2;
 let direction = 0;
+let queue: Command[] = [];
 
 interface Direction {
   name: string;
@@ -44,6 +49,14 @@ function drawRover() {
   }`;
 }
 
+function runQueue() {
+  queue.forEach((command) => {
+    executeCommand(command);
+  });
+  queue = [];
+  updateQueueUI();
+}
+
 interface Command {
   name: string;
   execute: () => void;
@@ -69,11 +82,27 @@ function executeCommand(command: Command) {
   drawRover();
 }
 
+function updateQueueUI() {
+  pendingList.innerHTML = "";
+  if (queue.length === 0) {
+    queueStatus.textContent = "Empty";
+  } else {
+    queueStatus.textContent = `${queue.length} command(s) pending`;
+    queue.forEach((cmd) => {
+      const li = document.createElement("li");
+      li.textContent = cmd.name;
+      pendingList.appendChild(li);
+    });
+  }
+}
+
 document.querySelector<HTMLButtonElement>("#rover-forward")!.onclick = () => {
-  executeCommand(forwardCommand);
+  queue.push(forwardCommand);
+  updateQueueUI();
 };
 document.querySelector<HTMLButtonElement>("#rover-right")!.onclick = () => {
-  executeCommand(rightCommand);
+  queue.push(rightCommand);
+  updateQueueUI();
 };
 
 document.querySelector<HTMLButtonElement>("#rover-reset")!.onclick = () => {
@@ -82,4 +111,14 @@ document.querySelector<HTMLButtonElement>("#rover-reset")!.onclick = () => {
   direction = 0;
   drawRover();
 };
+
+document.querySelector<HTMLButtonElement>("#rover-run")!.onclick = () => {
+  runQueue();
+};
+
+document.querySelector<HTMLButtonElement>("#rover-clear")!.onclick = () => {
+  queue = [];
+  updateQueueUI();
+};
+
 drawRover();
