@@ -9,26 +9,51 @@ let producers = 2;
 const crew = 6;
 const productionPerProducer = 3;
 
-function updateVisuals() {
-  const production = producers * productionPerProducer;
+interface ShiftResult {
+  producers: number;
+  crew: number;
+  production: number;
+  consumption: number;
+  balance: number;
+}
+
+function calculateShift(producersCount: number): ShiftResult {
+  const production = producersCount * productionPerProducer;
   const consumption = crew;
   const balance = production - consumption;
+  return {
+    producers: producersCount,
+    crew,
+    production,
+    consumption,
+    balance,
+  };
+}
+
+function updateVisuals() {
+  const result = calculateShift(producers);
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  updateCrewSquares(producers);
+  updateCrewSquares(result.producers);
+
   ctx.fillStyle = "#233e43";
   ctx.font = "14px system-ui";
-  ctx.fillText(`Producers: ${producers} / ${crew}`, 18, 76);
-  ctx.fillText(`Production: ${production}`, 18, 102);
+  ctx.fillText(`Producers: ${result.producers} / ${result.crew}`, 18, 76);
+  ctx.fillText(`Production: ${result.production}`, 18, 102);
+
   ctx.fillStyle = "#27766b";
-  ctx.fillRect(18, 110, production * 14, 20);
+  ctx.fillRect(18, 110, result.production * 14, 20);
+
   ctx.fillStyle = "#233e43";
-  ctx.fillText(`Consumption: ${consumption}`, 18, 154);
+  ctx.fillText(`Consumption: ${result.consumption}`, 18, 154);
+
   ctx.fillStyle = "#a44d23";
-  ctx.fillRect(18, 162, consumption * 14, 20);
+  ctx.fillRect(18, 162, result.consumption * 14, 20);
+
   readout.textContent =
-    `Assigned: ${producers}/${crew} · Production: ${production} · Consumption: ${consumption} · Balance: ${
-      balance > 0 ? "+" : ""
-    }${balance}`;
+    `Assigned: ${result.producers}/${result.crew} · Production: ${result.production} · Consumption: ${result.consumption} · Balance: ${
+      result.balance > 0 ? "+" : ""
+    }${result.balance}`;
 }
 
 function updateCrewSquares(producers: number) {
