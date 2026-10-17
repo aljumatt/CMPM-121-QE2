@@ -20,6 +20,8 @@ interface ShieldSnapshot {
   missing: number;
 }
 
+const shieldNotifier = new EventTarget();
+
 function drawMeter(snapshot: ShieldSnapshot) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let i = 0; i < snapshot.capacity; i++) {
@@ -52,11 +54,20 @@ function renderStats(snapshot: ShieldSnapshot) {
     `Shield charge: ${snapshot.charge} · Missing charge: ${snapshot.missing}`;
 }
 
+shieldNotifier.addEventListener("change", (e) => {
+  const snapshot = (e as CustomEvent<ShieldSnapshot>).detail;
+  drawMeter(snapshot);
+});
+
 function setCount(next: number) {
   const bounded = Math.max(0, Math.min(shieldCapacity, next));
   if (bounded === count) return;
   count = bounded;
-  drawMeter(getShieldSnapshot());
+
+  shieldNotifier.dispatchEvent(
+    new CustomEvent<ShieldSnapshot>("change", { detail: getShieldSnapshot() }),
+  );
+
   if (panel) updateStats();
 }
 
@@ -80,4 +91,5 @@ document.querySelector<HTMLButtonElement>("#counter-close")!.onclick = () => {
   panel.remove();
   panel = null;
 };
+
 drawMeter(getShieldSnapshot());
